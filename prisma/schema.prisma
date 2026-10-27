@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Venda {
+  id                    Int      @id @default(autoincrement())
+  itemNeoId             BigInt   @unique
+  numeroPedido          String?
+  estruturaUsuarioId    BigInt?
+  nomeUsuarioOriginal   String?
+  vendedorCorrigido     String?
+  equipeId              BigInt?
+  nomeEquipe            String?
+  produtoId             BigInt?
+  nomeProduto           String?
+  categoriaProduto      String?
+  quantidade            Int      @default(0)
+  valorUnitario         Decimal  @default(0) @db.Decimal(14, 2)
+  nomeEtapa             String?
+  nomeEtapaItem         String?
+  tipoNegociacao        String?
+  nomeCliente           String?
+  estado                String?
+  dataReferencia        DateTime?
+  dataHoraAtualizacao   DateTime?
+  dadosOriginais        Json
+  criadoEm              DateTime @default(now())
+  atualizadoEm          DateTime @updatedAt
+
+  @@index([dataReferencia])
+  @@index([estruturaUsuarioId])
+  @@index([nomeEquipe])
+  @@index([produtoId])
+  @@index([nomeEquipe, dataReferencia])
+  @@index([nomeEtapa, dataReferencia])
+  @@index([vendedorCorrigido, dataReferencia])
+}
+
+model Meta {
+  id                  Int      @id @default(autoincrement())
+  estruturaUsuarioId  BigInt?
+  nomeVendedor        String
+  ano                 Int
+  mes                 Int
+  metaValor           Decimal? @db.Decimal(14, 2)
+  metaQuantidade      Int?
+  criadoEm            DateTime @default(now())
+  atualizadoEm        DateTime @updatedAt
+  historico            HistoricoMeta[]
+
+  @@unique([nomeVendedor, ano, mes])
+  @@index([ano, mes])
+}
+
+model HistoricoMeta {
+  id             Int      @id @default(autoincrement())
+  metaId         Int
+  meta           Meta     @relation(fields: [metaId], references: [id], onDelete: Cascade)
+  nomeVendedor   String
+  ano            Int
+  mes            Int
+  metaValor      Decimal? @db.Decimal(14, 2)
+  metaQuantidade Int?
+  alteradoPor    String
+  alteradoEm     DateTime @default(now())
+
+  @@index([metaId, alteradoEm])
+}
+
+model Sincronizacao {
+  id                    Int       @id @default(autoincrement())
+  inicioConsultaDateTime DateTime
+  fimConsulta           DateTime
+  iniciadaEm            DateTime  @default(now())
+  finalizadaEm          DateTime?
+  status                String
+  recebidos             Int       @default(0)
+  gravados              Int       @default(0)
+  mensagemErro          String?
+}
+
+model CorrecaoVendedor {
+  id                Int      @id @default(autoincrement())
+  itemNeoId         BigInt
+  vendedorOriginal  String?
+  vendedorCorreto   String
+  motivo            String
+  alteradoPor       String
+  criadoEm          DateTime @default(now())
+
+  @@index([itemNeoId, criadoEm])
+}
